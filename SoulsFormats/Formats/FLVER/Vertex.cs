@@ -210,6 +210,11 @@ namespace SoulsFormats
                             Normal = ReadByteNormXYZ(br);
                             NormalW = br.ReadByte();
                         }
+                        else if (member.Type == LayoutType.ShortBoneIndices)
+                        {
+                            Normal = ReadShortBoneIndicesNormXYZ(br);
+                            NormalW = br.ReadUInt16();
+                        }
                         else if (member.Type == LayoutType.Short4toFloat4A)
                         {
                             Normal = ReadShortNormXYZ(br);
@@ -294,6 +299,10 @@ namespace SoulsFormats
                         {
                             Tangents.Add(ReadByteNormXYZW(br));
                         }
+                        else if (member.Type == LayoutType.Byte4D)
+                        {
+                            Tangents.Add(ReadByteNormXYZW(br));
+                        }
                         else if (member.Type == LayoutType.Short4toFloat4A)
                         {
                             Tangents.Add(ReadShortNormXYZW(br));
@@ -373,6 +382,12 @@ namespace SoulsFormats
 
             private static float ReadShortNorm(BinaryReaderEx br)
                 => br.ReadInt16() / 32767f;
+
+            private static float ReadShortBoneIndicesNorm(BinaryReaderEx br)
+                => (br.ReadInt16() - 127) / 127f;
+
+            private static Vector3 ReadShortBoneIndicesNormXYZ(BinaryReaderEx br)
+                => new Vector3(ReadShortBoneIndicesNorm(br), ReadShortBoneIndicesNorm(br), ReadShortBoneIndicesNorm(br));
 
             private static Vector3 ReadShortNormXYZ(BinaryReaderEx br)
                 => new Vector3(ReadShortNorm(br), ReadShortNorm(br), ReadShortNorm(br));
@@ -481,6 +496,11 @@ namespace SoulsFormats
                             WriteByteNormXYZ(bw, Normal);
                             bw.WriteByte((byte)NormalW);
                         }
+                        else if (member.Type == LayoutType.ShortBoneIndices)
+                        {
+                            WriteShortBoneIndicesNormXYZ(bw, Normal);
+                            bw.WriteInt16((short)NormalW);
+                        }
                         else if (member.Type == LayoutType.Short4toFloat4A)
                         {
                             WriteShortNormXYZ(bw, Normal);
@@ -583,6 +603,10 @@ namespace SoulsFormats
                         {
                             WriteByteNormXYZW(bw, tangent);
                         }
+                        else if (member.Type == LayoutType.Byte4D)
+                        {
+                            WriteByteNormXYZW(bw, tangent);
+                        }
                         else if (member.Type == LayoutType.Short4toFloat4A)
                         {
                             WriteShortNormXYZW(bw, tangent);
@@ -642,11 +666,22 @@ namespace SoulsFormats
             private static void WriteByteNorm(BinaryWriterEx bw, float value)
                 => bw.WriteByte((byte)Math.Round(value * 127 + 127));
 
+            //This is intentional, this format stores these int16s in unsigned byte ranges.
+            private static void WriteShortBoneIndicesNorm(BinaryWriterEx bw, float value)
+                => bw.WriteInt16((byte)Math.Round(value * 127 + 127));
+
             private static void WriteByteNormXYZ(BinaryWriterEx bw, Vector3 value)
             {
                 WriteByteNorm(bw, value.X);
                 WriteByteNorm(bw, value.Y);
                 WriteByteNorm(bw, value.Z);
+            }
+
+            private static void WriteShortBoneIndicesNormXYZ(BinaryWriterEx bw, Vector3 value)
+            {
+                WriteShortBoneIndicesNorm(bw, value.X);
+                WriteShortBoneIndicesNorm(bw, value.Y);
+                WriteShortBoneIndicesNorm(bw, value.Z);
             }
 
             private static void WriteByteNormXYZW(BinaryWriterEx bw, Vector4 value)
