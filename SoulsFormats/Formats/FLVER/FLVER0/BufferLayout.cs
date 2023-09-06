@@ -13,6 +13,10 @@ namespace SoulsFormats
             /// The total size of all ValueTypes in this layout.
             /// </summary>
             public int Size => this.Sum(member => member.Size);
+            public BufferLayout()
+            {
+
+            }
 
             internal BufferLayout(BinaryReaderEx br) : base()
             {

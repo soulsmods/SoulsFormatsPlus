@@ -13,7 +13,7 @@ namespace SoulsFormats
         /// <summary>
         /// General values for this model.
         /// </summary>
-        public FLVERHeader Header { get; set; }
+        public FLVER2Header Header { get; set; }
 
         /// <summary>
         /// Dummy polygons in this model.
@@ -55,11 +55,11 @@ namespace SoulsFormats
         public SekiroUnkStruct SekiroUnk { get; set; }
 
         /// <summary>
-        /// Creates a FLVER with a default header and empty lists.
+        /// Creates a FLVER2 with a default header and empty lists.
         /// </summary>
         public FLVER2()
         {
-            Header = new FLVERHeader();
+            Header = new FLVER2Header();
             Dummies = new List<FLVER.Dummy>();
             Materials = new List<Material>();
             GXLists = new List<GXList>();
@@ -90,7 +90,7 @@ namespace SoulsFormats
         {
             br.BigEndian = false;
 
-            Header = new FLVERHeader();
+            Header = new FLVER2Header();
             br.AssertASCII("FLVER\0");
             Header.BigEndian = br.AssertASCII("L\0", "B\0") == "B\0";
             br.BigEndian = Header.BigEndian;
@@ -104,7 +104,8 @@ namespace SoulsFormats
             // BB:  20013, 20014
             // DS3: 20013, 20014
             // SDT: 2001A, 20016 (test chr)
-            Header.Version = br.AssertInt32(0x20005, 0x20007, 0x20009, 0x2000B, 0x2000C, 0x2000D, 0x2000E, 0x2000F, 0x20010, 0x20013, 0x20014, 0x20016, 0x2001A);
+            // AC6: 2001B
+            Header.Version = br.AssertInt32(0x20005, 0x20007, 0x20009, 0x2000B, 0x2000C, 0x2000D, 0x2000E, 0x2000F, 0x20010, 0x20013, 0x20014, 0x20016, 0x2001A, 0x2001B);
 
             int dataOffset = br.ReadInt32();
             br.ReadInt32(); // Data length
@@ -141,7 +142,7 @@ namespace SoulsFormats
             Header.Unk68 = br.AssertInt32(0, 1, 2, 3, 4);
             br.AssertInt32(0);
             br.AssertInt32(0);
-            br.AssertInt32(0);
+            br.AssertInt32(0, 0x10);
             br.AssertInt32(0);
             br.AssertInt32(0);
 
@@ -426,72 +427,6 @@ namespace SoulsFormats
             bw.FillInt32("DataSize", (int)bw.Position - dataStart);
             if (Header.Version == 0x2000F || Header.Version == 0x20010)
                 bw.Pad(0x20);
-        }
-
-        /// <summary>
-        /// General metadata about a FLVER.
-        /// </summary>
-        public class FLVERHeader
-        {
-            /// <summary>
-            /// If true FLVER will be written big-endian, if false little-endian.
-            /// </summary>
-            public bool BigEndian { get; set; }
-
-            /// <summary>
-            /// Version of the format indicating presence of various features.
-            /// </summary>
-            public int Version { get; set; }
-
-            /// <summary>
-            /// Minimum extent of the entire model.
-            /// </summary>
-            public Vector3 BoundingBoxMin { get; set; }
-
-            /// <summary>
-            /// Maximum extent of the entire model.
-            /// </summary>
-            public Vector3 BoundingBoxMax { get; set; }
-
-            /// <summary>
-            /// If true strings are UTF-16, if false Shift-JIS.
-            /// </summary>
-            public bool Unicode { get; set; }
-
-            /// <summary>
-            /// Unknown.
-            /// </summary>
-            public bool Unk4A { get; set; }
-
-            /// <summary>
-            /// Unknown; I believe this is the primitive restart constant, but I'm not certain.
-            /// </summary>
-            public int Unk4C { get; set; }
-
-            /// <summary>
-            /// Unknown.
-            /// </summary>
-            public byte Unk5C { get; set; }
-
-            /// <summary>
-            /// Unknown.
-            /// </summary>
-            public byte Unk5D { get; set; }
-
-            /// <summary>
-            /// Unknown.
-            /// </summary>
-            public int Unk68 { get; set; }
-
-            /// <summary>
-            /// Creates a FLVERHeader with default values.
-            /// </summary>
-            public FLVERHeader()
-            {
-                BigEndian = false;
-                Version = 0x20014;
-                Unicode = true;
-            }
         }
     }
 }
